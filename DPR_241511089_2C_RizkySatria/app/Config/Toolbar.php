@@ -34,14 +34,14 @@ class Toolbar extends BaseConfig
      * @var list<class-string>
      */
     public array $collectors = [
-        Timers::class,
-        Database::class,
-        Logs::class,
-        Views::class,
-        // \CodeIgniter\Debug\Toolbar\Collectors\Cache::class,
-        Files::class,
-        Routes::class,
-        Events::class,
+        // Temporarily disabled to avoid missing BaseCollector errors in local dev
+        // Timers::class,
+        // Database::class,
+        // Logs::class,
+        // Views::class,
+        // Files::class,
+        // Routes::class,
+        // Events::class,
     ];
 
     /**
