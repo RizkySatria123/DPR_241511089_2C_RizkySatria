@@ -57,7 +57,8 @@ class Session extends BaseConfig
      *
      * IMPORTANT: You are REQUIRED to set a valid save path!
      */
-    public string $savePath = WRITEPATH . 'session';
+    // Use system temp directory to avoid permissions issues on some environments (e.g., OneDrive folders on Windows)
+    public string $savePath = sys_get_temp_dir();
 
     /**
      * --------------------------------------------------------------------------
