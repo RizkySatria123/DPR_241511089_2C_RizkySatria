@@ -10,13 +10,13 @@ $routes->get('/', 'Home::index');
 // Auth
 $routes->get('login', 'Auth::index');
 $routes->post('login', 'Auth::login');
-$routes->post('/logout', 'Auth::logout');
+$routes->post('logout', 'Auth::logout');
 
-// Admin
-$routes->get('/admin', 'Admin::index', ['filter' => 'auth']);
-$routes->get('/admin/dashboard', 'Admin::index', ['filter' => 'auth']);
+$routes->group('admin', ['filter' => 'auth'], static function ($routes) {
+	$routes->get('/', 'Admin::index');
+	$routes->get('dashboard', 'Admin::index');
 
-// Anggota (Admin-only)
-$routes->get('/admin/anggota', 'Anggota::index', ['filter' => 'auth']);
-$routes->get('/admin/anggota/create', 'Anggota::create', ['filter' => 'auth']);
-$routes->post('/admin/anggota/store', 'Anggota::store', ['filter' => 'auth']);
+	$routes->get('anggota', 'AnggotaController::index');
+	$routes->get('anggota/create', 'AnggotaController::create');
+	$routes->post('anggota', 'AnggotaController::store');
+});

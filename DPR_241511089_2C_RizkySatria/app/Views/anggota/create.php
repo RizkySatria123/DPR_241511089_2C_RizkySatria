@@ -19,7 +19,7 @@
         <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
       <?php endif; ?>
 
-      <form action="<?= base_url('admin/anggota/store') ?>" method="post" class="row g-3">
+  <form action="<?= base_url('admin/anggota') ?>" method="post" class="row g-3">
         <?= csrf_field() ?>
         <div class="col-md-6">
           <label class="form-label">Nama Depan<span class="text-danger">*</span></label>
