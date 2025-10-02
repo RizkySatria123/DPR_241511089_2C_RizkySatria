@@ -8,15 +8,15 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Home::index');
 
 // Auth
-$routes->get('/login', 'Auth::index');
-$routes->post('/login', 'Auth::login');
-$routes->get('/logout', 'Auth::logout');
+$routes->get('login', 'Auth::index');
+$routes->post('login', 'Auth::login');
+$routes->post('/logout', 'Auth::logout');
 
 // Admin
-$routes->get('/admin', 'Admin::index');
-$routes->get('/admin/dashboard', 'Admin::index');
+$routes->get('/admin', 'Admin::index', ['filter' => 'auth']);
+$routes->get('/admin/dashboard', 'Admin::index', ['filter' => 'auth']);
 
 // Anggota (Admin-only)
-$routes->get('/admin/anggota', 'Anggota::index');
-$routes->get('/admin/anggota/create', 'Anggota::create');
-$routes->post('/admin/anggota/store', 'Anggota::store');
+$routes->get('/admin/anggota', 'Anggota::index', ['filter' => 'auth']);
+$routes->get('/admin/anggota/create', 'Anggota::create', ['filter' => 'auth']);
+$routes->post('/admin/anggota/store', 'Anggota::store', ['filter' => 'auth']);

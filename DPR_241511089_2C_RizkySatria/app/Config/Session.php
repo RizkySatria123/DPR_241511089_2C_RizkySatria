@@ -57,8 +57,12 @@ class Session extends BaseConfig
      *
      * IMPORTANT: You are REQUIRED to set a valid save path!
      */
-    // Use system temp directory to avoid permissions issues on some environments (e.g., OneDrive folders on Windows)
-    public string $savePath = sys_get_temp_dir();
+    /**
+     * Use system temp directory to avoid permissions issues on some environments
+     * (e.g., OneDrive folders on Windows). Fallback to writable/session if the temp
+     * dir is not accessible.
+     */
+    public string $savePath;
 
     /**
      * --------------------------------------------------------------------------
@@ -125,4 +129,21 @@ class Session extends BaseConfig
      * seconds.
      */
     public int $lockMaxRetries = 300;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $tempPath = sys_get_temp_dir();
+
+        if ($tempPath === false || ! is_dir($tempPath) || ! is_writable($tempPath)) {
+            $tempPath = rtrim(WRITEPATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'session';
+
+            if (! is_dir($tempPath)) {
+                mkdir($tempPath, 0775, true);
+            }
+        }
+
+        $this->savePath = $tempPath;
+    }
 }

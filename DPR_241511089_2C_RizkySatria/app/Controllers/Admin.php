@@ -18,9 +18,10 @@ class Admin extends BaseController
 
         return view('admin/dashboard', $data);
     }
-        // Retain dashboard method for backward compatibility if any links still use it
-        public function dashboard()
-        {
-            return $this->index();
-        }
+
+    // Retain dashboard method for backward compatibility if any links still use it
+    public function dashboard()
+    {
+        return $this->index();
     }
+}

@@ -12,12 +12,18 @@
         <a class="navbar-brand" href="#">Gaji DPR</a>
         <div class="d-flex ms-auto">
           <span class="navbar-text text-white me-3">Halo, <?= esc($username ?? 'Pengguna') ?> (<?= esc($role ?? '-') ?>)</span>
-          <a class="btn btn-outline-light" href="<?= base_url('logout') ?>">Logout</a>
+          <form action="<?= base_url('logout') ?>" method="post" class="d-inline">
+            <?= csrf_field() ?>
+            <button type="submit" class="btn btn-outline-light">Logout</button>
+          </form>
         </div>
       </div>
     </nav>
 
     <div class="container py-4">
+      <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= esc(session()->getFlashdata('success')) ?></div>
+      <?php endif; ?>
       <?php if (session()->getFlashdata('error')): ?>
         <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
       <?php endif; ?>

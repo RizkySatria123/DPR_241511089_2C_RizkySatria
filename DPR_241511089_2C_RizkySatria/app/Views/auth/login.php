@@ -19,15 +19,15 @@
                 </div>
               <?php endif; ?>
 
-              <form action="<?= base_url('login') ?>" method="post" novalidate>
+              <form action="<?= base_url('login') ?>" method="post" novalidate autocomplete="off">
                 <?= csrf_field() ?>
                 <div class="mb-3">
                   <label for="username" class="form-label">Username</label>
-                  <input type="text" class="form-control" id="username" name="username" value="<?= esc(old('username')) ?>" required autofocus>
+                  <input type="text" class="form-control" id="username" name="username" value="<?= esc(old('username')) ?>" required autofocus autocomplete="username" inputmode="text" maxlength="50">
                 </div>
                 <div class="mb-3">
                   <label for="password" class="form-label">Password</label>
-                  <input type="password" class="form-control" id="password" name="password" required>
+                  <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" minlength="8" maxlength="255">
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Masuk</button>
               </form>
