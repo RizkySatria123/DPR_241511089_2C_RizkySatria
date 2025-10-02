@@ -46,7 +46,7 @@ class AnggotaController extends BaseController
             return $redirect;
         }
 
-        $anggota = $this->model->orderBy('id', 'DESC')->findAll();
+        $anggota = $this->model->findAll();
 
         return view('anggota/index', [
             'anggota'        => $anggota,
