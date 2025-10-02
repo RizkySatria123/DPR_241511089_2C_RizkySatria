@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\AnggotaModel;
+
 class Admin extends BaseController
 {
     public function index()
@@ -10,10 +12,19 @@ class Admin extends BaseController
             return redirect()->to(base_url('login'))->with('error', 'Silakan login terlebih dahulu.');
         }
 
+        $anggotaModel = new AnggotaModel();
+
+        $recentAnggota = $anggotaModel
+            ->findAll(5);
+
+        $totalAnggota = $anggotaModel->countAll();
+
         $data = [
             'title' => 'Dashboard Admin',
             'username' => session()->get('username'),
             'role' => session()->get('role'),
+            'totalAnggota' => $totalAnggota,
+            'recentAnggota' => $recentAnggota,
         ];
 
         return view('admin/dashboard', $data);
