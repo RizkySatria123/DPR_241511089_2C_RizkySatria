@@ -19,4 +19,6 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
 	$routes->get('anggota', 'AnggotaController::index');
 	$routes->get('anggota/create', 'AnggotaController::create');
 	$routes->post('anggota', 'AnggotaController::store');
+	$routes->get('anggota/edit/(:num)', 'AnggotaController::edit/$1');
+	$routes->post('anggota/update/(:num)', 'AnggotaController::update/$1');
 });

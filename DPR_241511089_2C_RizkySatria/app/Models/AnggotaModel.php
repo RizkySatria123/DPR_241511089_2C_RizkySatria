@@ -7,7 +7,7 @@ use CodeIgniter\Model;
 class AnggotaModel extends Model
 {
     protected $table = 'anggota';
-    protected $primaryKey = 'id';
+    protected $primaryKey = 'id_anggota';
 
     protected $returnType = 'array';
     protected $useSoftDeletes = false;

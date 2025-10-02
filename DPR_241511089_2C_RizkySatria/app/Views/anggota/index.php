@@ -63,7 +63,7 @@
                   <td><?= esc($row['jumlah_anak'] ?? 0) ?></td>
                   <td class="text-center">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Aksi anggota">
-                      <button type="button" class="btn btn-outline-secondary" disabled title="Fitur edit segera hadir">Edit</button>
+                      <a class="btn btn-outline-secondary" href="<?= base_url('admin/anggota/edit/' . ($row['id'] ?? 0)) ?>">Edit</a>
                       <button type="button" class="btn btn-outline-danger" disabled title="Fitur hapus segera hadir">Hapus</button>
                     </div>
                   </td>
