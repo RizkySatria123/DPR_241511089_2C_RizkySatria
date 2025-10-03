@@ -67,22 +67,21 @@
 
                 <div class="col-md-6">
                   <label for="satuan" class="form-label">Satuan Pembayaran</label>
+                  <?php
+                    $selectedSatuan = old('satuan');
+                    if ($selectedSatuan && ! isset($satuanOptions[$selectedSatuan])) {
+                        $match = array_search($selectedSatuan, $satuanOptions ?? [], true);
+                        if ($match !== false) {
+                            $selectedSatuan = $match;
+                        }
+                    }
+                  ?>
                   <select name="satuan" id="satuan" class="form-select" required>
                     <option value="" hidden>Pilih satuan pembayaran</option>
                     <?php foreach (($satuanOptions ?? []) as $value => $label): ?>
-                      <option value="<?= esc($value) ?>" <?= old('satuan') === $value ? 'selected' : '' ?>><?= esc($label) ?></option>
+                      <option value="<?= esc($value) ?>" <?= $selectedSatuan === $value ? 'selected' : '' ?>><?= esc($label) ?></option>
                     <?php endforeach; ?>
                   </select>
-                </div>
-
-                <div class="col-12">
-                  <label for="deskripsi" class="form-label">Deskripsi (opsional)</label>
-                  <textarea name="deskripsi" id="deskripsi" class="form-control" rows="3"><?= old('deskripsi') ?></textarea>
-                </div>
-
-                <div class="col-12">
-                  <label for="keterangan" class="form-label">Keterangan Tambahan (opsional)</label>
-                  <textarea name="keterangan" id="keterangan" class="form-control" rows="2"><?= old('keterangan') ?></textarea>
                 </div>
 
                 <div class="col-12 d-flex justify-content-between">

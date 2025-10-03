@@ -17,10 +17,6 @@ class KomponenGajiModel extends Model
         'jabatan',
         'nominal',
         'satuan',
-        'deskripsi',
-        'keterangan',
-        'created_at',
-        'updated_at',
     ];
 
     protected $useTimestamps = false;
@@ -30,9 +26,7 @@ class KomponenGajiModel extends Model
         'kategori'      => 'required|string|max_length[50]',
         'jabatan'       => 'required|string|max_length[50]',
         'nominal'       => 'required|decimal',
-        'satuan'        => 'required|string|max_length[30]',
-        'deskripsi'     => 'permit_empty|string',
-        'keterangan'    => 'permit_empty|string',
+        'satuan'        => 'required|in_list[Hari,Bulan,Periode]',
     ];
 
     protected $validationMessages = [

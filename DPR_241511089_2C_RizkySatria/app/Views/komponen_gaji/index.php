@@ -87,8 +87,6 @@
               <th scope="col">Jabatan</th>
               <th scope="col">Nominal</th>
               <th scope="col">Satuan</th>
-              <th scope="col">Deskripsi</th>
-              <th scope="col">Dibuat</th>
               <th scope="col" class="text-center">Aksi</th>
             </tr>
           </thead>
@@ -102,8 +100,7 @@
                   $jabatan    = $row['jabatan'] ?? '-';
                   $nominal    = $row['nominal'] ?? $row['nominal_default'] ?? 0;
                   $satuan     = $row['satuan'] ?? '-';
-                  $deskripsi  = $row['deskripsi'] ?? $row['keterangan'] ?? '-';
-                  $createdRaw = $row['created_at'] ?? ($row['updated_at'] ?? null);
+                  $satuanLabel = $satuanOptions[$satuan] ?? $satuan;
                 ?>
                 <tr>
                   <td><?= esc($rowId) ?></td>
@@ -111,23 +108,21 @@
                   <td><?= esc($kategoriOptions[$kategori] ?? $kategori) ?></td>
                   <td><?= esc($jabatan) ?></td>
                   <td>Rp <?= number_format((float) $nominal, 2, ',', '.') ?></td>
-                  <td><?= esc($satuan) ?></td>
-                  <td><?= esc($deskripsi !== '' ? $deskripsi : '-') ?></td>
-                  <td>
-                    <?php if (! empty($createdRaw)): ?>
-                      <?= esc(date('d M Y H:i', strtotime($createdRaw))) ?>
-                    <?php else: ?>
-                      -
-                    <?php endif; ?>
-                  </td>
+                  <td><?= esc($satuanLabel) ?></td>
                   <td class="text-center">
-                    <a href="<?= base_url('admin/komponen-gaji/edit/' . $rowId) ?>" class="btn btn-sm btn-outline-primary">Ubah</a>
+                    <div class="d-inline-flex gap-2">
+                      <a href="<?= base_url('admin/komponen-gaji/edit/' . $rowId) ?>" class="btn btn-sm btn-outline-primary">Ubah</a>
+                      <form action="<?= base_url('admin/komponen-gaji/delete/' . $rowId) ?>" method="post" onsubmit="return confirm('Yakin ingin menghapus komponen ini?');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Hapus</button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               <?php endforeach; ?>
             <?php else: ?>
               <tr>
-                <td colspan="9" class="text-center text-muted">Belum ada komponen gaji.</td>
+                <td colspan="7" class="text-center text-muted">Belum ada komponen gaji.</td>
               </tr>
             <?php endif; ?>
           </tbody>

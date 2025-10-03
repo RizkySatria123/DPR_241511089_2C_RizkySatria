@@ -28,4 +28,5 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
 	$routes->post('komponen-gaji', 'KomponenGajiController::store');
 	$routes->get('komponen-gaji/edit/(:num)', 'KomponenGajiController::edit/$1');
 	$routes->post('komponen-gaji/update/(:num)', 'KomponenGajiController::update/$1');
+	$routes->post('komponen-gaji/delete/(:num)', 'KomponenGajiController::delete/$1');
 });

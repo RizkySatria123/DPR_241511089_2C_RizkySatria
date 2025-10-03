@@ -26,11 +26,37 @@ class KomponenGajiController extends BaseController
 
     /** @var array<string, string> */
     private array $satuanOptions = [
-        'Bulan'       => 'Per Bulan',
-        'Persidangan' => 'Per Sidang',
-        'Sekali'      => 'Sekali Bayar',
-        'Hari'        => 'Per Hari',
+        'Hari'    => 'Per Hari',
+        'Bulan'   => 'Per Bulan',
+        'Periode' => 'Per Periode',
     ];
+
+    /** @var array<string, string> */
+    private array $satuanNormalizationMap = [
+        'per bulan'    => 'Bulan',
+        'bulan'        => 'Bulan',
+        'per sidang'   => 'Periode',
+        'sidang'       => 'Periode',
+        'persidangan'  => 'Periode',
+        'sekali bayar' => 'Periode',
+        'sekali'       => 'Periode',
+        'per hari'     => 'Hari',
+        'hari'         => 'Hari',
+        'per periode'  => 'Periode',
+        'periode'      => 'Periode',
+    ];
+
+    private function normalizeSatuan(?string $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        $trimmed = trim($value);
+        $key     = strtolower($trimmed);
+
+        return $this->satuanNormalizationMap[$key] ?? $trimmed;
+    }
 
     private function collectFormData(): array
     {
@@ -39,18 +65,8 @@ class KomponenGajiController extends BaseController
             'kategori'      => (string) $this->request->getPost('kategori'),
             'jabatan'       => (string) $this->request->getPost('jabatan'),
             'nominal'       => (float) $this->request->getPost('nominal'),
-            'satuan'        => trim((string) $this->request->getPost('satuan')),
-            'deskripsi'     => trim((string) $this->request->getPost('deskripsi')) ?: null,
-            'keterangan'    => trim((string) $this->request->getPost('keterangan')) ?: null,
+            'satuan'        => $this->normalizeSatuan((string) $this->request->getPost('satuan')),
         ];
-
-        if ($data['deskripsi'] === null) {
-            unset($data['deskripsi']);
-        }
-
-        if ($data['keterangan'] === null) {
-            unset($data['keterangan']);
-        }
 
         return $data;
     }
@@ -62,9 +78,7 @@ class KomponenGajiController extends BaseController
             'kategori'      => 'required|in_list[' . implode(',', array_keys($this->kategoriOptions)) . ']',
             'jabatan'       => 'required|in_list[' . implode(',', array_keys($this->jabatanOptions)) . ']',
             'nominal'       => 'required|decimal',
-            'satuan'        => 'required|string|max_length[30]',
-            'deskripsi'     => 'permit_empty|string',
-            'keterangan'    => 'permit_empty|string',
+            'satuan'        => 'required|in_list[' . implode(',', array_keys($this->satuanOptions)) . ']',
         ];
     }
 
@@ -107,11 +121,13 @@ class KomponenGajiController extends BaseController
             'last_created'     => null,
         ];
 
-        foreach ($komponenList as $row) {
+        foreach ($komponenList as &$row) {
             $kategori = trim((string) ($row['kategori'] ?? ''));
             $nominal  = isset($row['nominal'])
                 ? (float) $row['nominal']
                 : (float) ($row['nominal_default'] ?? 0.0);
+
+            $row['satuan'] = $this->normalizeSatuan($row['satuan'] ?? '');
 
             if (stripos($kategori, 'gaji') !== false) {
                 $summary['total_gaji']++;
@@ -129,10 +145,12 @@ class KomponenGajiController extends BaseController
                 }
             }
         }
+        unset($row);
 
         return view('komponen_gaji/index', [
             'komponen'        => $komponenList,
             'kategoriOptions' => $this->kategoriOptions,
+            'satuanOptions'   => $this->satuanOptions,
             'summary'         => $summary,
         ]);
     }
@@ -195,6 +213,9 @@ class KomponenGajiController extends BaseController
                 ->with('error', 'Data komponen gaji tidak ditemukan.');
         }
 
+        $komponen = (array) $komponen;
+        $komponen['satuan'] = $this->normalizeSatuan($komponen['satuan'] ?? '');
+
         return view('komponen_gaji/edit', [
             'komponen'        => $komponen,
             'kategoriOptions' => $this->kategoriOptions,
@@ -237,5 +258,49 @@ class KomponenGajiController extends BaseController
 
         return redirect()->to(base_url('admin/komponen-gaji'))
             ->with('success', 'Komponen gaji berhasil diperbarui.');
+    }
+
+    public function delete(int $id): RedirectResponse
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        if (! $this->model->find($id)) {
+            return redirect()->to(base_url('admin/komponen-gaji'))
+                ->with('error', 'Data komponen gaji tidak ditemukan.');
+        }
+
+        $db = db_connect();
+
+        $isReferenced = $db->table('penggajian')
+            ->where('id_komponen_gaji', $id)
+            ->countAllResults();
+
+        if ($isReferenced > 0) {
+            return redirect()->to(base_url('admin/komponen-gaji'))
+                ->with('error', 'Komponen gaji sedang digunakan dalam data penggajian dan tidak dapat dihapus.');
+        }
+
+        try {
+            $builder = $db->table('komponen_gaji');
+            $builder->where('id_komponen_gaji', $id);
+            $builder->delete();
+
+            if ($db->affectedRows() === 0) {
+                throw new \RuntimeException('Delete query tidak berhasil dijalankan.');
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal menghapus komponen gaji {id}: {message}', [
+                'id'      => $id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->to(base_url('admin/komponen-gaji'))
+                ->with('error', 'Terjadi kesalahan saat menghapus data.');
+        }
+
+        return redirect()->to(base_url('admin/komponen-gaji'))
+            ->with('success', 'Komponen gaji berhasil dihapus.');
     }
 }
