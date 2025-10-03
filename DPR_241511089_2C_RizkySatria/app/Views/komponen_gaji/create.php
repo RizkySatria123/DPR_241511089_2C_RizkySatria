@@ -34,12 +34,12 @@
               <form action="<?= base_url('admin/komponen-gaji') ?>" method="post" class="row g-3">
                 <?= csrf_field() ?>
 
-                <div class="col-md-8">
-                  <label for="nama" class="form-label">Nama Komponen</label>
-                  <input type="text" name="nama" id="nama" class="form-control" value="<?= old('nama') ?>" required>
+                <div class="col-md-7">
+                  <label for="nama_komponen" class="form-label">Nama Komponen</label>
+                  <input type="text" name="nama_komponen" id="nama_komponen" class="form-control" value="<?= old('nama_komponen') ?>" required>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-5">
                   <label for="kategori" class="form-label">Kategori</label>
                   <select name="kategori" id="kategori" class="form-select" required>
                     <option value="" hidden>Pilih kategori</option>
@@ -50,14 +50,39 @@
                 </div>
 
                 <div class="col-md-6">
-                  <label for="nominal_default" class="form-label">Nominal Default (Rp)</label>
-                  <input type="number" step="0.01" min="0" name="nominal_default" id="nominal_default" class="form-control" value="<?= old('nominal_default', '0') ?>" required>
+                  <label for="jabatan" class="form-label">Jabatan Penerima</label>
+                  <select name="jabatan" id="jabatan" class="form-select" required>
+                    <option value="" hidden>Pilih jabatan penerima</option>
+                    <?php foreach (($jabatanOptions ?? []) as $value => $label): ?>
+                      <option value="<?= esc($value) ?>" <?= old('jabatan') === $value ? 'selected' : '' ?>><?= esc($label) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="nominal" class="form-label">Nominal (Rp)</label>
+                  <input type="number" step="0.01" min="0" name="nominal" id="nominal" class="form-control" value="<?= old('nominal', '0') ?>" required>
                   <small class="text-muted">Gunakan titik sebagai pemisah desimal, misal 15000000.50</small>
+                </div>
+
+                <div class="col-md-6">
+                  <label for="satuan" class="form-label">Satuan Pembayaran</label>
+                  <select name="satuan" id="satuan" class="form-select" required>
+                    <option value="" hidden>Pilih satuan pembayaran</option>
+                    <?php foreach (($satuanOptions ?? []) as $value => $label): ?>
+                      <option value="<?= esc($value) ?>" <?= old('satuan') === $value ? 'selected' : '' ?>><?= esc($label) ?></option>
+                    <?php endforeach; ?>
+                  </select>
                 </div>
 
                 <div class="col-12">
                   <label for="deskripsi" class="form-label">Deskripsi (opsional)</label>
                   <textarea name="deskripsi" id="deskripsi" class="form-control" rows="3"><?= old('deskripsi') ?></textarea>
+                </div>
+
+                <div class="col-12">
+                  <label for="keterangan" class="form-label">Keterangan Tambahan (opsional)</label>
+                  <textarea name="keterangan" id="keterangan" class="form-control" rows="2"><?= old('keterangan') ?></textarea>
                 </div>
 
                 <div class="col-12 d-flex justify-content-between">

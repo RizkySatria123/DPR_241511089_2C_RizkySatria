@@ -6,25 +6,37 @@ use CodeIgniter\Model;
 
 class KomponenGajiModel extends Model
 {
-    protected $table            = 'komponen_gaji';
-    protected $primaryKey       = 'id_komponen';
-    protected $returnType       = 'array';
-    protected $useSoftDeletes   = false;
-    protected $allowedFields    = ['nama', 'kategori', 'nominal_default', 'deskripsi'];
+    protected $table          = 'komponen_gaji';
+    protected $primaryKey     = 'id_komponen_gaji';
+    protected $returnType     = 'array';
+    protected $useSoftDeletes = false;
 
-    protected $useTimestamps = true;
-    protected $createdField  = 'created_at';
-    protected $updatedField  = 'updated_at';
+    protected $allowedFields = [
+        'nama_komponen',
+        'kategori',
+        'jabatan',
+        'nominal',
+        'satuan',
+        'deskripsi',
+        'keterangan',
+        'created_at',
+        'updated_at',
+    ];
+
+    protected $useTimestamps = false;
 
     protected $validationRules = [
-        'nama'            => 'required|string|min_length[3]|max_length[100]',
-        'kategori'        => 'required|in_list[gaji,tunjangan]',
-        'nominal_default' => 'required|decimal',
-        'deskripsi'       => 'permit_empty|string',
+        'nama_komponen' => 'required|string|min_length[3]|max_length[150]',
+        'kategori'      => 'required|string|max_length[50]',
+        'jabatan'       => 'required|string|max_length[50]',
+        'nominal'       => 'required|decimal',
+        'satuan'        => 'required|string|max_length[30]',
+        'deskripsi'     => 'permit_empty|string',
+        'keterangan'    => 'permit_empty|string',
     ];
 
     protected $validationMessages = [
-        'nominal_default' => [
+        'nominal' => [
             'decimal' => 'Nominal harus berupa angka yang valid.',
         ],
     ];

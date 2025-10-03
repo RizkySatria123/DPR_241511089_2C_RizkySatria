@@ -11,8 +11,25 @@ class KomponenGajiController extends BaseController
 
     /** @var array<string, string> */
     private array $kategoriOptions = [
-        'gaji'      => 'Komponen Gaji',
-        'tunjangan' => 'Tunjangan',
+        'Gaji Pokok'         => 'Gaji Pokok',
+        'Tunjangan Melekat'  => 'Tunjangan Melekat',
+        'Tunjangan Lain'     => 'Tunjangan Lain',
+    ];
+
+    /** @var array<string, string> */
+    private array $jabatanOptions = [
+        'Ketua'       => 'Ketua',
+        'Wakil Ketua' => 'Wakil Ketua',
+        'Anggota'     => 'Anggota',
+        'Semua'       => 'Semua',
+    ];
+
+    /** @var array<string, string> */
+    private array $satuanOptions = [
+        'Bulan'       => 'Per Bulan',
+        'Persidangan' => 'Per Sidang',
+        'Sekali'      => 'Sekali Bayar',
+        'Hari'        => 'Per Hari',
     ];
 
     public function __construct()
@@ -43,11 +60,44 @@ class KomponenGajiController extends BaseController
             return $redirect;
         }
 
-        $komponenList = $this->model->findAll();
+        $komponenList = $this->model
+            ->orderBy('id_komponen_gaji', 'ASC')
+            ->findAll();
+        $summary = [
+            'total'            => count($komponenList),
+            'total_gaji'       => 0,
+            'total_tunjangan'  => 0,
+            'total_nominal'    => 0.0,
+            'last_created'     => null,
+        ];
+
+        foreach ($komponenList as $row) {
+            $kategori = trim((string) ($row['kategori'] ?? ''));
+            $nominal  = isset($row['nominal'])
+                ? (float) $row['nominal']
+                : (float) ($row['nominal_default'] ?? 0.0);
+
+            if (stripos($kategori, 'gaji') !== false) {
+                $summary['total_gaji']++;
+            } elseif ($kategori !== '') {
+                $summary['total_tunjangan']++;
+            }
+
+            $summary['total_nominal'] += $nominal;
+
+            $createdAt = $row['created_at'] ?? ($row['updated_at'] ?? null);
+
+            if (! empty($createdAt)) {
+                if ($summary['last_created'] === null || $createdAt > $summary['last_created']) {
+                    $summary['last_created'] = $createdAt;
+                }
+            }
+        }
 
         return view('komponen_gaji/index', [
             'komponen'        => $komponenList,
             'kategoriOptions' => $this->kategoriOptions,
+            'summary'         => $summary,
         ]);
     }
 
@@ -61,6 +111,8 @@ class KomponenGajiController extends BaseController
 
         return view('komponen_gaji/create', [
             'kategoriOptions' => $this->kategoriOptions,
+            'jabatanOptions'  => $this->jabatanOptions,
+            'satuanOptions'   => $this->satuanOptions,
         ]);
     }
 
@@ -73,10 +125,13 @@ class KomponenGajiController extends BaseController
         helper(['form']);
 
         $validationRules = [
-            'nama'            => 'required|string|min_length[3]|max_length[100]',
-            'kategori'        => 'required|in_list[' . implode(',', array_keys($this->kategoriOptions)) . ']',
-            'nominal_default' => 'required|decimal',
-            'deskripsi'       => 'permit_empty|string',
+            'nama_komponen' => 'required|string|min_length[3]|max_length[150]',
+            'kategori'      => 'required|in_list[' . implode(',', array_keys($this->kategoriOptions)) . ']',
+            'jabatan'       => 'required|in_list[' . implode(',', array_keys($this->jabatanOptions)) . ']',
+            'nominal'       => 'required|decimal',
+            'satuan'        => 'required|string|max_length[30]',
+            'deskripsi'     => 'permit_empty|string',
+            'keterangan'    => 'permit_empty|string',
         ];
 
         if (! $this->validate($validationRules)) {
@@ -86,11 +141,22 @@ class KomponenGajiController extends BaseController
         }
 
         $data = [
-            'nama'            => trim((string) $this->request->getPost('nama')),
-            'kategori'        => (string) $this->request->getPost('kategori'),
-            'nominal_default' => (float) $this->request->getPost('nominal_default'),
-            'deskripsi'       => trim((string) $this->request->getPost('deskripsi')) ?: null,
+            'nama_komponen' => trim((string) $this->request->getPost('nama_komponen')),
+            'kategori'      => (string) $this->request->getPost('kategori'),
+            'jabatan'       => (string) $this->request->getPost('jabatan'),
+            'nominal'       => (float) $this->request->getPost('nominal'),
+            'satuan'        => trim((string) $this->request->getPost('satuan')),
+            'deskripsi'     => trim((string) $this->request->getPost('deskripsi')) ?: null,
+            'keterangan'    => trim((string) $this->request->getPost('keterangan')) ?: null,
         ];
+
+        if ($data['deskripsi'] === null) {
+            unset($data['deskripsi']);
+        }
+
+        if ($data['keterangan'] === null) {
+            unset($data['keterangan']);
+        }
 
         try {
             $this->model->insert($data, false);

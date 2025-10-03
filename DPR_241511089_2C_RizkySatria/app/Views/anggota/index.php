@@ -20,9 +20,12 @@
     </nav>
 
     <div class="container py-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
         <h1 class="h4 mb-0">Daftar Anggota DPR</h1>
-        <a href="<?= base_url('admin/anggota/create') ?>" class="btn btn-primary">Tambah Anggota Baru</a>
+        <div class="d-flex gap-2">
+          <a href="<?= base_url('admin') ?>" class="btn btn-outline-secondary">Kembali ke Dashboard</a>
+          <a href="<?= base_url('admin/anggota/create') ?>" class="btn btn-primary">Tambah Anggota Baru</a>
+        </div>
       </div>
 
       <?php if (session()->getFlashdata('success')): ?>
