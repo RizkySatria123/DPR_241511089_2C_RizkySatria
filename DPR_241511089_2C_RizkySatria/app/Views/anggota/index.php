@@ -48,7 +48,8 @@
             <?php if (!empty($anggota)): ?>
               <?php foreach ($anggota as $i => $row): ?>
                 <tr>
-                  <td><?= esc($row['id'] ?? ($i + 1)) ?></td>
+                  <?php $rowId = $row[$primaryKey] ?? $row['id'] ?? ($i + 1); ?>
+                  <td><?= esc($rowId) ?></td>
                   <td>
                     <?php
                       $gelarDepan   = trim((string) ($row['gelar_depan'] ?? ''));
@@ -63,8 +64,11 @@
                   <td><?= esc($row['jumlah_anak'] ?? 0) ?></td>
                   <td class="text-center">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Aksi anggota">
-                      <a class="btn btn-outline-secondary" href="<?= base_url('admin/anggota/edit/' . ($row['id'] ?? 0)) ?>">Edit</a>
-                      <button type="button" class="btn btn-outline-danger" disabled title="Fitur hapus segera hadir">Hapus</button>
+                      <a class="btn btn-outline-secondary" href="<?= base_url('admin/anggota/edit/' . $rowId) ?>">Edit</a>
+                      <form action="<?= base_url('admin/anggota/delete/' . $rowId) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data anggota ini?');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-outline-danger">Hapus</button>
+                      </form>
                     </div>
                   </td>
                 </tr>

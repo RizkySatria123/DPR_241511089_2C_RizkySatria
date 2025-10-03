@@ -8,6 +8,7 @@ use CodeIgniter\HTTP\RedirectResponse;
 class AnggotaController extends BaseController
 {
     private AnggotaModel $model;
+    private string $primaryKey = 'id_anggota';
 
     private array $jabatanOptions = ['Ketua', 'Wakil Ketua', 'Anggota'];
     private array $statusOptions = ['Belum Kawin', 'Kawin', 'Cerai'];
@@ -15,6 +16,13 @@ class AnggotaController extends BaseController
     public function __construct()
     {
         $this->model = new AnggotaModel();
+    }
+
+    private function findAnggotaById(int $id): ?array
+    {
+        return $this->model
+            ->where($this->primaryKey, $id)
+            ->first();
     }
 
     /**
@@ -72,12 +80,15 @@ class AnggotaController extends BaseController
             return $redirect;
         }
 
-        $anggota = $this->model->findAll();
+        $anggota = $this->model
+            ->orderBy($this->primaryKey, 'DESC')
+            ->findAll();
 
         return view('anggota/index', [
             'anggota'        => $anggota,
             'jabatanOptions' => $this->jabatanOptions,
             'statusOptions'  => $this->statusOptions,
+            'primaryKey'     => $this->primaryKey,
         ]);
     }
 
@@ -95,6 +106,7 @@ class AnggotaController extends BaseController
         return view('anggota/create', [
             'jabatanOptions' => $this->jabatanOptions,
             'statusOptions'  => $this->statusOptions,
+            'primaryKey'     => $this->primaryKey,
         ]);
     }
 
@@ -134,7 +146,7 @@ class AnggotaController extends BaseController
 
         helper('form');
 
-        $anggota = $this->model->find($id);
+    $anggota = $this->findAnggotaById($id);
 
         if (! $anggota) {
             return redirect()->to(base_url('admin/anggota'))->with('error', 'Data anggota tidak ditemukan.');
@@ -144,6 +156,7 @@ class AnggotaController extends BaseController
             'anggota'        => $anggota,
             'jabatanOptions' => $this->jabatanOptions,
             'statusOptions'  => $this->statusOptions,
+            'primaryKey'     => $this->primaryKey,
         ]);
     }
 
@@ -155,7 +168,7 @@ class AnggotaController extends BaseController
 
         helper(['form']);
 
-        if (! $this->model->find($id)) {
+        if (! $this->findAnggotaById($id)) {
             return redirect()->to(base_url('admin/anggota'))->with('error', 'Data anggota tidak ditemukan.');
         }
 
@@ -166,7 +179,10 @@ class AnggotaController extends BaseController
         $data = $this->collectFormData();
 
         try {
-            $this->model->update($id, $data);
+            $this->model
+                ->where($this->primaryKey, $id)
+                ->set($data)
+                ->update();
         } catch (\Throwable $e) {
             log_message('error', 'Gagal memperbarui data anggota {id}: {message}', [
                 'id'      => $id,
@@ -177,5 +193,35 @@ class AnggotaController extends BaseController
         }
 
         return redirect()->to(base_url('admin/anggota'))->with('success', 'Data anggota berhasil diperbarui.');
+    }
+
+    public function delete(int $id): RedirectResponse
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        if (! $this->findAnggotaById($id)) {
+            return redirect()->to(base_url('admin/anggota'))->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        try {
+            $deleted = $this->model
+                ->where($this->primaryKey, $id)
+                ->delete();
+
+            if ($deleted === false) {
+                throw new \RuntimeException('Delete query failed.');
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal menghapus data anggota {id}: {message}', [
+                'id'      => $id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus data.');
+        }
+
+        return redirect()->to(base_url('admin/anggota'))->with('success', 'Data anggota berhasil dihapus.');
     }
 }

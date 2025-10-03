@@ -19,7 +19,11 @@
         <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
       <?php endif; ?>
 
-  <form action="<?= base_url('admin/anggota/update/' . ($anggota['id'] ?? $anggota['id_anggota'])) ?>" method="post" class="row g-3">
+      <?php 
+        $currentPrimaryKey = $primaryKey ?? 'id_anggota';
+        $rowId = $anggota[$currentPrimaryKey] ?? $anggota['id'] ?? null;
+      ?>
+      <form action="<?= base_url('admin/anggota/update/' . $rowId) ?>" method="post" class="row g-3">
         <?= csrf_field() ?>
         <div class="col-md-6">
           <label class="form-label">Nama Depan<span class="text-danger">*</span></label>
