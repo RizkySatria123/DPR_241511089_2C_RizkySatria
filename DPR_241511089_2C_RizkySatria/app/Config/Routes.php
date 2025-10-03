@@ -22,4 +22,8 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
 	$routes->get('anggota/edit/(:num)', 'AnggotaController::edit/$1');
 	$routes->post('anggota/update/(:num)', 'AnggotaController::update/$1');
 	$routes->post('anggota/delete/(:num)', 'AnggotaController::delete/$1');
+
+	$routes->get('komponen-gaji', 'KomponenGajiController::index');
+	$routes->get('komponen-gaji/create', 'KomponenGajiController::create');
+	$routes->post('komponen-gaji', 'KomponenGajiController::store');
 });

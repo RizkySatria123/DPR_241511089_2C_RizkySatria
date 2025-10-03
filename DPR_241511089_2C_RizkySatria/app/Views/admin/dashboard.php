@@ -44,6 +44,15 @@
             </div>
           </div>
         </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h2 class="h6 text-muted">Total Komponen Gaji</h2>
+              <p class="display-5 fw-bold mb-2"><?= esc($totalKomponen ?? 0) ?></p>
+              <a class="btn btn-sm btn-outline-success" href="<?= base_url('admin/komponen-gaji') ?>">Kelola Komponen</a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="card border-0 shadow-sm">
