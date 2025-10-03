@@ -32,6 +32,42 @@ class KomponenGajiController extends BaseController
         'Hari'        => 'Per Hari',
     ];
 
+    private function collectFormData(): array
+    {
+        $data = [
+            'nama_komponen' => trim((string) $this->request->getPost('nama_komponen')),
+            'kategori'      => (string) $this->request->getPost('kategori'),
+            'jabatan'       => (string) $this->request->getPost('jabatan'),
+            'nominal'       => (float) $this->request->getPost('nominal'),
+            'satuan'        => trim((string) $this->request->getPost('satuan')),
+            'deskripsi'     => trim((string) $this->request->getPost('deskripsi')) ?: null,
+            'keterangan'    => trim((string) $this->request->getPost('keterangan')) ?: null,
+        ];
+
+        if ($data['deskripsi'] === null) {
+            unset($data['deskripsi']);
+        }
+
+        if ($data['keterangan'] === null) {
+            unset($data['keterangan']);
+        }
+
+        return $data;
+    }
+
+    private function komponenValidationRules(): array
+    {
+        return [
+            'nama_komponen' => 'required|string|min_length[3]|max_length[150]',
+            'kategori'      => 'required|in_list[' . implode(',', array_keys($this->kategoriOptions)) . ']',
+            'jabatan'       => 'required|in_list[' . implode(',', array_keys($this->jabatanOptions)) . ']',
+            'nominal'       => 'required|decimal',
+            'satuan'        => 'required|string|max_length[30]',
+            'deskripsi'     => 'permit_empty|string',
+            'keterangan'    => 'permit_empty|string',
+        ];
+    }
+
     public function __construct()
     {
         $this->model = new KomponenGajiModel();
@@ -124,39 +160,13 @@ class KomponenGajiController extends BaseController
 
         helper(['form']);
 
-        $validationRules = [
-            'nama_komponen' => 'required|string|min_length[3]|max_length[150]',
-            'kategori'      => 'required|in_list[' . implode(',', array_keys($this->kategoriOptions)) . ']',
-            'jabatan'       => 'required|in_list[' . implode(',', array_keys($this->jabatanOptions)) . ']',
-            'nominal'       => 'required|decimal',
-            'satuan'        => 'required|string|max_length[30]',
-            'deskripsi'     => 'permit_empty|string',
-            'keterangan'    => 'permit_empty|string',
-        ];
-
-        if (! $this->validate($validationRules)) {
+        if (! $this->validate($this->komponenValidationRules())) {
             return redirect()->back()
                 ->with('error', 'Validasi gagal. Mohon cek kembali input Anda.')
                 ->withInput();
         }
 
-        $data = [
-            'nama_komponen' => trim((string) $this->request->getPost('nama_komponen')),
-            'kategori'      => (string) $this->request->getPost('kategori'),
-            'jabatan'       => (string) $this->request->getPost('jabatan'),
-            'nominal'       => (float) $this->request->getPost('nominal'),
-            'satuan'        => trim((string) $this->request->getPost('satuan')),
-            'deskripsi'     => trim((string) $this->request->getPost('deskripsi')) ?: null,
-            'keterangan'    => trim((string) $this->request->getPost('keterangan')) ?: null,
-        ];
-
-        if ($data['deskripsi'] === null) {
-            unset($data['deskripsi']);
-        }
-
-        if ($data['keterangan'] === null) {
-            unset($data['keterangan']);
-        }
+        $data = $this->collectFormData();
 
         try {
             $this->model->insert($data, false);
@@ -168,5 +178,64 @@ class KomponenGajiController extends BaseController
 
         return redirect()->to(base_url('admin/komponen-gaji'))
             ->with('success', 'Komponen gaji berhasil ditambahkan.');
+    }
+
+    public function edit(int $id)
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        helper('form');
+
+        $komponen = $this->model->find($id);
+
+        if (! $komponen) {
+            return redirect()->to(base_url('admin/komponen-gaji'))
+                ->with('error', 'Data komponen gaji tidak ditemukan.');
+        }
+
+        return view('komponen_gaji/edit', [
+            'komponen'        => $komponen,
+            'kategoriOptions' => $this->kategoriOptions,
+            'jabatanOptions'  => $this->jabatanOptions,
+            'satuanOptions'   => $this->satuanOptions,
+        ]);
+    }
+
+    public function update(int $id): RedirectResponse
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        helper(['form']);
+
+        if (! $this->model->find($id)) {
+            return redirect()->to(base_url('admin/komponen-gaji'))
+                ->with('error', 'Data komponen gaji tidak ditemukan.');
+        }
+
+        if (! $this->validate($this->komponenValidationRules())) {
+            return redirect()->back()
+                ->with('error', 'Validasi gagal. Mohon cek kembali input Anda.')
+                ->withInput();
+        }
+
+        $data = $this->collectFormData();
+
+        try {
+            $this->model->update($id, $data);
+        } catch (\Throwable $e) {
+            log_message('error', 'Gagal memperbarui komponen gaji {id}: {message}', [
+                'id'      => $id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memperbarui data.')->withInput();
+        }
+
+        return redirect()->to(base_url('admin/komponen-gaji'))
+            ->with('success', 'Komponen gaji berhasil diperbarui.');
     }
 }

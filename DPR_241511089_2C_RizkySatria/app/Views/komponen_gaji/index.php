@@ -89,6 +89,7 @@
               <th scope="col">Satuan</th>
               <th scope="col">Deskripsi</th>
               <th scope="col">Dibuat</th>
+              <th scope="col" class="text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -119,11 +120,14 @@
                       -
                     <?php endif; ?>
                   </td>
+                  <td class="text-center">
+                    <a href="<?= base_url('admin/komponen-gaji/edit/' . $rowId) ?>" class="btn btn-sm btn-outline-primary">Ubah</a>
+                  </td>
                 </tr>
               <?php endforeach; ?>
             <?php else: ?>
               <tr>
-                <td colspan="8" class="text-center text-muted">Belum ada komponen gaji.</td>
+                <td colspan="9" class="text-center text-muted">Belum ada komponen gaji.</td>
               </tr>
             <?php endif; ?>
           </tbody>

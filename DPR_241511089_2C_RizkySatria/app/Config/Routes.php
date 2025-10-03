@@ -26,4 +26,6 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
 	$routes->get('komponen-gaji', 'KomponenGajiController::index');
 	$routes->get('komponen-gaji/create', 'KomponenGajiController::create');
 	$routes->post('komponen-gaji', 'KomponenGajiController::store');
+	$routes->get('komponen-gaji/edit/(:num)', 'KomponenGajiController::edit/$1');
+	$routes->post('komponen-gaji/update/(:num)', 'KomponenGajiController::update/$1');
 });
