@@ -104,4 +104,35 @@ class PenggajianModel extends Model
 
         return $row ? (int) $row->total : 0;
     }
+
+    /**
+     * Menghasilkan ringkasan take home pay seluruh anggota.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getTakeHomeSummary(): array
+    {
+        $builder = $this->db->table('anggota AS a');
+
+        $builder
+            ->select([
+                'a.id_anggota',
+                'a.nama_depan',
+                'a.nama_belakang',
+                'a.gelar_depan',
+                'a.gelar_belakang',
+                'a.jabatan',
+                'a.status_pernikahan',
+                'a.jumlah_anak',
+                'COUNT(p.id_komponen_gaji) AS total_komponen',
+                'COALESCE(SUM(k.nominal), 0) AS total_nominal',
+            ])
+            ->join('penggajian AS p', 'p.id_anggota = a.id_anggota', 'left')
+            ->join('komponen_gaji AS k', 'k.id_komponen_gaji = p.id_komponen_gaji', 'left')
+            ->groupBy('a.id_anggota')
+            ->orderBy('a.nama_depan', 'ASC')
+            ->orderBy('a.nama_belakang', 'ASC');
+
+        return $builder->get()->getResultArray();
+    }
 }

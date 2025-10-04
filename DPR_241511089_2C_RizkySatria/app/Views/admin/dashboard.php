@@ -59,7 +59,7 @@
               <h2 class="h6 text-muted">Relasi Penggajian Aktif</h2>
               <p class="display-5 fw-bold mb-1"><?= esc($totalPenggajian ?? 0) ?></p>
               <p class="text-muted mb-3">Mencakup <?= esc($totalAnggotaDenganPenggajian ?? 0) ?> anggota</p>
-              <a class="btn btn-sm btn-outline-primary" href="<?= base_url('admin/anggota') ?>">Atur Penggajian</a>
+              <a class="btn btn-sm btn-outline-primary" href="<?= base_url('admin/penggajian') ?>">Lihat Penggajian</a>
             </div>
           </div>
         </div>

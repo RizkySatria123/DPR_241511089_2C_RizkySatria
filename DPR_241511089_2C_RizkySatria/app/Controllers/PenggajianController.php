@@ -120,6 +120,60 @@ class PenggajianController extends BaseController
         }));
     }
 
+    public function index()
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        $rows = $this->penggajianModel->getTakeHomeSummary();
+
+        $totalKomponen = 0;
+        $totalNominal  = 0.0;
+        $anggotaDenganKomponen = 0;
+        $topTakeHome = ['nama' => null, 'total' => 0.0];
+
+        foreach ($rows as &$row) {
+            $row['total_komponen'] = (int) ($row['total_komponen'] ?? 0);
+            $row['total_nominal']  = (float) ($row['total_nominal'] ?? 0);
+            $row['display_name']   = $this->anggotaFullName($row);
+
+            $totalKomponen += $row['total_komponen'];
+            $totalNominal  += $row['total_nominal'];
+
+            if ($row['total_komponen'] > 0) {
+                $anggotaDenganKomponen++;
+            }
+
+            if ($row['total_nominal'] > $topTakeHome['total']) {
+                $topTakeHome = [
+                    'nama'  => $row['display_name'],
+                    'total' => $row['total_nominal'],
+                ];
+            }
+        }
+        unset($row);
+
+        $averageNominal = $anggotaDenganKomponen > 0
+            ? $totalNominal / $anggotaDenganKomponen
+            : 0.0;
+
+        $summary = [
+            'totalAnggota'            => count($rows),
+            'totalKomponen'           => $totalKomponen,
+            'totalNominal'            => $totalNominal,
+            'averageNominal'          => $averageNominal,
+            'anggotaDenganKomponen'   => $anggotaDenganKomponen,
+            'tertinggiNama'           => $topTakeHome['nama'],
+            'tertinggiNominal'        => $topTakeHome['total'],
+        ];
+
+        return view('penggajian/index', [
+            'rows'    => $rows,
+            'summary' => $summary,
+        ]);
+    }
+
     public function manage(int $anggotaId)
     {
         if ($redirect = $this->ensureAdmin()) {
