@@ -53,6 +53,16 @@
             </div>
           </div>
         </div>
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+              <h2 class="h6 text-muted">Relasi Penggajian Aktif</h2>
+              <p class="display-5 fw-bold mb-1"><?= esc($totalPenggajian ?? 0) ?></p>
+              <p class="text-muted mb-3">Mencakup <?= esc($totalAnggotaDenganPenggajian ?? 0) ?> anggota</p>
+              <a class="btn btn-sm btn-outline-primary" href="<?= base_url('admin/anggota') ?>">Atur Penggajian</a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="card border-0 shadow-sm">

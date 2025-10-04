@@ -67,6 +67,7 @@
                   <td><?= esc($row['jumlah_anak'] ?? 0) ?></td>
                   <td class="text-center">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Aksi anggota">
+                      <a class="btn btn-outline-primary" href="<?= base_url('admin/penggajian/anggota/' . $rowId) ?>">Penggajian</a>
                       <a class="btn btn-outline-secondary" href="<?= base_url('admin/anggota/edit/' . $rowId) ?>">Edit</a>
                       <form action="<?= base_url('admin/anggota/delete/' . $rowId) ?>" method="post" class="d-inline" onsubmit="return confirm('Yakin ingin menghapus data anggota ini?');">
                         <?= csrf_field() ?>

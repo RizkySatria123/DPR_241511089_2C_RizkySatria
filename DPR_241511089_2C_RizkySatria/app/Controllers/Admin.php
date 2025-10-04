@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\AnggotaModel;
 use App\Models\KomponenGajiModel;
+use App\Models\PenggajianModel;
 
 class Admin extends BaseController
 {
@@ -15,12 +16,15 @@ class Admin extends BaseController
 
         $anggotaModel    = new AnggotaModel();
         $komponenModel   = new KomponenGajiModel();
+        $penggajianModel = new PenggajianModel();
 
         $recentAnggota = $anggotaModel
             ->findAll(5);
 
         $totalAnggota = $anggotaModel->countAll();
         $totalKomponen = $komponenModel->countAll();
+        $totalPenggajian = $penggajianModel->countAllAssignments();
+        $totalAnggotaDenganPenggajian = $penggajianModel->countDistinctAnggota();
 
         $data = [
             'title' => 'Dashboard Admin',
@@ -28,6 +32,8 @@ class Admin extends BaseController
             'role' => session()->get('role'),
             'totalAnggota' => $totalAnggota,
             'totalKomponen' => $totalKomponen,
+            'totalPenggajian' => $totalPenggajian,
+            'totalAnggotaDenganPenggajian' => $totalAnggotaDenganPenggajian,
             'recentAnggota' => $recentAnggota,
         ];
 
