@@ -229,48 +229,88 @@ class PenggajianController extends BaseController
 
         $anggota = (array) $anggotaEntity;
 
-        $rules = [
-            'id_komponen_gaji' => 'required|is_natural_no_zero',
-        ];
+        $rawKomponenIds = $this->request->getPost('id_komponen_gaji');
+        $komponenIds = array_values(array_unique(array_filter(array_map('intval', (array) $rawKomponenIds), static fn (int $id): bool => $id > 0)));
 
-        if (! $this->validate($rules)) {
-            return redirect()->back()->with('error', 'Pilihan komponen gaji tidak valid.')->withInput();
+        if ($komponenIds === []) {
+            return redirect()->back()->with('error', 'Pilih minimal satu komponen gaji yang ingin ditambahkan.')->withInput();
         }
 
-        $komponenId = (int) $this->request->getPost('id_komponen_gaji');
-        $komponen   = $this->komponenModel->find($komponenId);
+        $jabatanAnggota = trim((string) ($anggota['jabatan'] ?? ''));
 
-        if (! $komponen) {
-            return redirect()->back()->with('error', 'Komponen gaji tidak ditemukan.')->withInput();
-        }
+        $addedCount      = 0;
+        $duplicateNames  = [];
+        $invalidNames    = [];
 
-        $jabatanKomponen = trim((string) ($komponen['jabatan'] ?? ''));
-        $jabatanAnggota  = trim((string) ($anggota['jabatan'] ?? ''));
+        foreach ($komponenIds as $komponenId) {
+            $komponen = $this->komponenModel->find($komponenId);
 
-        if ($jabatanKomponen !== '' && $jabatanKomponen !== 'Semua' && $jabatanKomponen !== $jabatanAnggota) {
-            return redirect()->back()->with('error', 'Komponen gaji tidak sesuai dengan jabatan anggota.')->withInput();
-        }
-
-        if ($this->penggajianModel->exists($anggotaId, $komponenId)) {
-            return redirect()->back()->with('error', 'Komponen gaji sudah ditambahkan untuk anggota ini.');
-        }
-
-        try {
-            if (! $this->penggajianModel->assign($anggotaId, $komponenId)) {
-                throw new \RuntimeException('Insert gagal dijalankan.');
+            if (! $komponen) {
+                $invalidNames[] = (string) $komponenId;
+                continue;
             }
-        } catch (\Throwable $e) {
-            log_message('error', 'Gagal menambahkan penggajian untuk anggota {anggota} dan komponen {komponen}: {pesan}', [
-                'anggota'  => $anggotaId,
-                'komponen' => $komponenId,
-                'pesan'    => $e->getMessage(),
-            ]);
 
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data penggajian.')->withInput();
+            $namaKomponen   = trim((string) ($komponen['nama_komponen'] ?? 'Komponen #' . $komponenId));
+            $jabatanKomponen = trim((string) ($komponen['jabatan'] ?? ''));
+
+            if ($jabatanKomponen !== '' && $jabatanKomponen !== 'Semua' && $jabatanKomponen !== $jabatanAnggota) {
+                $invalidNames[] = $namaKomponen;
+                continue;
+            }
+
+            if ($this->penggajianModel->exists($anggotaId, $komponenId)) {
+                $duplicateNames[] = $namaKomponen;
+                continue;
+            }
+
+            try {
+                if (! $this->penggajianModel->assign($anggotaId, $komponenId)) {
+                    throw new \RuntimeException('Insert gagal dijalankan.');
+                }
+            } catch (\Throwable $e) {
+                log_message('error', 'Gagal menambahkan penggajian untuk anggota {anggota} dan komponen {komponen}: {pesan}', [
+                    'anggota'  => $anggotaId,
+                    'komponen' => $komponenId,
+                    'pesan'    => $e->getMessage(),
+                ]);
+
+                return redirect()->back()->with('error', 'Terjadi kesalahan saat menambahkan data penggajian.')->withInput();
+            }
+
+            $addedCount++;
         }
 
-        return redirect()->to(base_url('admin/penggajian/anggota/' . $anggotaId))
-            ->with('success', 'Komponen gaji berhasil ditambahkan.');
+        if ($addedCount === 0) {
+            $messages = [];
+            if ($duplicateNames !== []) {
+                $messages[] = 'Komponen yang dipilih sudah terdaftar.';
+            }
+            if ($invalidNames !== []) {
+                $messages[] = 'Beberapa komponen tidak sesuai dengan jabatan anggota.';
+            }
+
+            return redirect()->back()->with('error', implode(' ', $messages) ?: 'Tidak ada komponen yang ditambahkan.')->withInput();
+        }
+
+        $successMessage = $addedCount . ' komponen gaji berhasil ditambahkan.';
+
+        $warningParts = [];
+        if ($duplicateNames !== []) {
+            $warningParts[] = 'Duplikat diabaikan: ' . implode(', ', array_unique($duplicateNames)) . '.';
+        }
+
+        if ($invalidNames !== []) {
+            $warningParts[] = 'Tidak ditambahkan karena tidak sesuai jabatan: ' . implode(', ', array_unique($invalidNames)) . '.';
+        }
+
+        $redirect = redirect()->to(base_url('admin/penggajian/anggota/' . $anggotaId))
+            ->with('success', $successMessage);
+
+        if ($warningParts !== []) {
+            $redirect->with('warning', implode(' ', $warningParts));
+        }
+
+        return $redirect;
     }
 
     public function delete(int $anggotaId, int $komponenId): RedirectResponse
@@ -302,5 +342,69 @@ class PenggajianController extends BaseController
 
         return redirect()->to(base_url('admin/penggajian/anggota/' . $anggotaId))
             ->with('success', 'Komponen gaji berhasil dihapus.');
+    }
+
+    public function bulkDelete(int $anggotaId): RedirectResponse
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        $anggotaEntity = $this->anggotaModel->find($anggotaId);
+
+        if (! $anggotaEntity) {
+            return redirect()->to(base_url('admin/anggota'))->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        $rawIds = $this->request->getPost('komponen_ids');
+        $komponenIds = array_values(array_unique(array_filter(array_map('intval', (array) $rawIds), static fn (int $id): bool => $id > 0)));
+
+        if ($komponenIds === []) {
+            return redirect()->back()->with('error', 'Pilih minimal satu komponen yang ingin dihapus.');
+        }
+
+        $removedCount = 0;
+        $notFound     = [];
+
+        foreach ($komponenIds as $komponenId) {
+            $komponen = $this->komponenModel->find($komponenId);
+            $namaKomponen = $komponen['nama_komponen'] ?? 'Komponen #' . $komponenId;
+
+            if (! $this->penggajianModel->exists($anggotaId, $komponenId)) {
+                $notFound[] = $namaKomponen;
+                continue;
+            }
+
+            try {
+                if ($this->penggajianModel->remove($anggotaId, $komponenId)) {
+                    $removedCount++;
+                }
+            } catch (\Throwable $e) {
+                log_message('error', 'Gagal menghapus penggajian anggota {anggota} komponen {komponen}: {pesan}', [
+                    'anggota'  => $anggotaId,
+                    'komponen' => $komponenId,
+                    'pesan'    => $e->getMessage(),
+                ]);
+
+                return redirect()->to(base_url('admin/penggajian/anggota/' . $anggotaId))
+                    ->with('error', 'Terjadi kesalahan saat menghapus data penggajian.');
+            }
+        }
+
+        if ($removedCount === 0) {
+            return redirect()->to(base_url('admin/penggajian/anggota/' . $anggotaId))
+                ->with('error', 'Tidak ada komponen yang dihapus.');
+        }
+
+        $message = $removedCount . ' komponen gaji berhasil dihapus.';
+
+        $redirect = redirect()->to(base_url('admin/penggajian/anggota/' . $anggotaId))
+            ->with('success', $message);
+
+        if ($notFound !== []) {
+            $redirect->with('warning', 'Komponen tidak ditemukan atau sudah dihapus: ' . implode(', ', array_unique($notFound)) . '.');
+        }
+
+        return $redirect;
     }
 }
