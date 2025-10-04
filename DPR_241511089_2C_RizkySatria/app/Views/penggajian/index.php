@@ -124,7 +124,10 @@
                       </td>
                       <td>Rp <?= number_format($takeHome, 2, ',', '.') ?></td>
                       <td class="text-center">
-                        <a href="<?= base_url('admin/penggajian/anggota/' . $anggotaId) ?>" class="btn btn-sm btn-outline-primary">Kelola</a>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Aksi penggajian">
+                          <a href="<?= base_url('admin/penggajian/anggota/' . $anggotaId . '/detail') ?>" class="btn btn-outline-secondary">Detail</a>
+                          <a href="<?= base_url('admin/penggajian/anggota/' . $anggotaId) ?>" class="btn btn-outline-primary">Kelola</a>
+                        </div>
                       </td>
                     </tr>
                   <?php endforeach; ?>

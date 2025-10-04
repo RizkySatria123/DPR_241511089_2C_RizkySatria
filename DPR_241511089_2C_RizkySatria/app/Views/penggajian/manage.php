@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   </head>
   <body>
+    <?php $anggotaId = (int) ($anggotaId ?? ($anggota['id_anggota'] ?? $anggota['id'] ?? 0)); ?>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
         <a class="navbar-brand" href="<?= base_url('admin') ?>">Gaji DPR</a>
@@ -27,6 +28,7 @@
         </div>
         <div class="d-flex gap-2">
           <a href="<?= base_url('admin/anggota') ?>" class="btn btn-outline-secondary">Kembali ke Daftar Anggota</a>
+          <a href="<?= base_url('admin/penggajian/anggota/' . $anggotaId . '/detail') ?>" class="btn btn-outline-primary">Lihat Detail</a>
         </div>
       </div>
 
@@ -39,8 +41,6 @@
       <?php if (session()->getFlashdata('warning')): ?>
         <div class="alert alert-warning"><?= esc(session()->getFlashdata('warning')) ?></div>
       <?php endif; ?>
-
-      <?php $anggotaId = (int) ($anggota['id_anggota'] ?? $anggota['id'] ?? 0); ?>
 
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">

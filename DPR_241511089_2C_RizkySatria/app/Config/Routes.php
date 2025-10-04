@@ -32,6 +32,7 @@ $routes->group('admin', ['filter' => 'auth'], static function ($routes) {
 
 	$routes->get('penggajian', 'PenggajianController::index');
 	$routes->get('penggajian/anggota/(:num)', 'PenggajianController::manage/$1');
+	$routes->get('penggajian/anggota/(:num)/detail', 'PenggajianController::detail/$1');
 	$routes->post('penggajian/anggota/(:num)', 'PenggajianController::store/$1');
 	$routes->post('penggajian/anggota/(:num)/hapus/(:num)', 'PenggajianController::delete/$1/$2');
 	$routes->post('penggajian/anggota/(:num)/hapus-banyak', 'PenggajianController::bulkDelete/$1');

@@ -209,6 +209,7 @@ class PenggajianController extends BaseController
             'assignments'        => $assignments,
             'availableKomponen'  => $availableKomponen,
             'satuanOptions'      => $this->satuanOptions,
+            'anggotaId'          => $anggotaId,
             'anggotaDisplayName' => $this->anggotaFullName($anggota),
         ]);
     }
@@ -406,5 +407,56 @@ class PenggajianController extends BaseController
         }
 
         return $redirect;
+    }
+
+    public function detail(int $anggotaId)
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+
+        $anggotaEntity = $this->anggotaModel->find($anggotaId);
+
+        if (! $anggotaEntity) {
+            return redirect()->to(base_url('admin/penggajian'))
+                ->with('error', 'Data anggota tidak ditemukan.');
+        }
+
+        $anggota = (array) $anggotaEntity;
+
+        $assignments = $this->penggajianModel->getAssignmentsForAnggota($anggotaId);
+
+        $totalNominal = 0.0;
+        $totalsByKategori = [];
+        $totalsBySatuan   = [];
+
+        foreach ($assignments as &$row) {
+            $row['satuan']  = $this->normalizeSatuan($row['satuan'] ?? '');
+            $row['kategori'] = $this->kategoriOptions[$row['kategori']] ?? ($row['kategori'] ?? '-');
+            $row['nominal']  = (float) ($row['nominal'] ?? 0);
+
+            $totalNominal += $row['nominal'];
+
+            $totalsByKategori[$row['kategori']] = ($totalsByKategori[$row['kategori']] ?? 0) + $row['nominal'];
+            $satuanLabel = $this->satuanOptions[$row['satuan']] ?? $row['satuan'];
+            $totalsBySatuan[$satuanLabel] = ($totalsBySatuan[$satuanLabel] ?? 0) + $row['nominal'];
+        }
+        unset($row);
+
+        ksort($totalsByKategori);
+        ksort($totalsBySatuan);
+
+        $data = [
+            'anggota'            => $anggota,
+            'assignments'        => $assignments,
+            'totalNominal'       => $totalNominal,
+            'totalKomponen'      => count($assignments),
+            'totalsByKategori'   => $totalsByKategori,
+            'totalsBySatuan'     => $totalsBySatuan,
+            'anggotaDisplayName' => $this->anggotaFullName($anggota),
+            'satuanOptions'      => $this->satuanOptions,
+        ];
+
+        return view('penggajian/detail', $data);
     }
 }
